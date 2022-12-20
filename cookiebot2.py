@@ -588,6 +588,39 @@ class Game:
         elif name in self.heavenlyUpgrades:
             self.heavenlyUpgrades[name].sell()
 
+    def buyUntil(self,targetUpgrade:str):
+        upgradeList = []
+        for name in self.upgrades:
+            upgradeList.append(self.upgrades[name])
+        length = len(upgradeList)
+        for index in range(length):
+            lowest = index
+            for x in range(index,length):
+                if upgradeList[x].price()<upgradeList[lowest].price():
+                    lowest = x
+            swap = upgradeList[index]
+            upgradeList[index] = upgradeList[lowest]
+            upgradeList[lowest] = swap
+        if not targetUpgrade in self.upgrades:
+            return "Not a valid upgrade"
+        newPurchasedUpgrades = []
+        for upgrade in upgradeList:
+            if not upgrade.avalable():
+                continue
+            conditionsMet = True
+            for condition in upgrade.conditions:
+                if not condition.met():
+                    conditionsMet = False
+                    continue
+            if not conditionsMet:
+                continue
+            upgrade.buy()
+            newPurchasedUpgrades.append(upgrade.name)
+            if upgrade.name == targetUpgrade:
+                break
+        return "upgrades purchased: {}".format(newPurchasedUpgrades)
+                    
+
 
     def cps(self):
         total = 0
@@ -750,6 +783,10 @@ class Game:
         elif(text[:8] == 'heralds '):
             global heralds
             heralds = text[8:]
+        elif(text[:9] == 'buyuntil '):
+            message = self.buyUntil(text[9:])
+            if not supressPrints:
+                print(message)
         else:
             print("not a command")
         if not supressPrints: print('\n')
