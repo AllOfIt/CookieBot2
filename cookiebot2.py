@@ -443,14 +443,14 @@ class Game:
             'Synthetic chocolate green honey butter biscuit' : Cookie('Synthetic chocolate green honey butter biscuit',tredecillion(100),1.1,everythingCondition(350)),
             'Royal raspberry chocolate butter biscuit' : Cookie('Royal raspberry chocolate butter biscuit',quattuordecillion(100),1.1,everythingCondition(400)),
             'Bingo center/Research facility' : DoubleUpgrade('Bingo center/Research facility',quadrillion(1),'Grandma',7,multiplier = 4),
-            'Specialized chocolate chips' : Cookie('Specialized chocolate chips',quadrillion(1),1.01, Condition('Bingo center/Research facility')),
-            'Designer coco beans' : Cookie('Designer coco beans',quadrillion(2),1.02,Condition('Specialized chocolate chips')),
+            'Specialized chocolate chips' : Cookie('Specialized chocolate chips',quadrillion(1),1.01, Condition('Bingo center/Research facility'),tier = 'tech'),
+            'Designer coco beans' : Cookie('Designer coco beans',quadrillion(2),1.02,Condition('Specialized chocolate chips'),tier = 'tech'),
             'Ritual rolling pins' : DoubleUpgrade('Ritual rolling pins',quadrillion(4),'Grandma', Condition('Designer coco beans')),
             'Underworld ovens' : Cookie('Underworld ovens',quadrillion(8),1.03, Condition('Ritual rolling pins')),
             'One mind' : Brainsweep('One mind',quadrillion(16),0.02,'Grandma','Grandma',Condition('Underworld ovens')),
-            'Exotic nuts' : Cookie('Exotic nuts',quadrillion(32),1.04, Condition('One mind')),
+            'Exotic nuts' : Cookie('Exotic nuts',quadrillion(32),1.04, Condition('One mind'),tier = 'tech'),
             'Communal brainsweep' : Brainsweep('Communal brainsweep',quadrillion(64),0.02,'Grandma','Grandma',Condition('Exotic nuts')),
-            'Arcane sugar' : Cookie('Arcane sugar',quadrillion(128),1.05,Condition('Communal brainsweep')),
+            'Arcane sugar' : Cookie('Arcane sugar',quadrillion(128),1.05,Condition('Communal brainsweep'),tier = 'tech'),
             'Elder Pact' : Brainsweep('Elder Pact',quadrillion(256),0.05,'Grandma','Portal',Condition('Arcane sugar')),
             'Plastic mouse' : MouseUpgrade('Plastic mouse',50000),
             'Iron mouse' : MouseUpgrade('Iron mouse',million(5)),
@@ -521,7 +521,11 @@ class Game:
             'Starter kit' : Upgrade('Starter kit',Infinity()),
             'Starter kitchen' : Upgrade('Starter kitchen',Infinity()),
             'Synergies Vol. I' : Upgrade('Synergies Vol. I',Infinity()),
-            'Synergies Vol. II' : Upgrade('Synergies Vol. II',Infinity())
+            'Synergies Vol. II' : Upgrade('Synergies Vol. II',Infinity()),
+            'Divine discount' : Upgrade('Divine discounts',Infinity()),
+            'Divine sales' : Upgrade('Divine sales',Infinity()),
+            'Divine bakeries' : Upgrade('Divine bakeries',Infinity()),
+            'Five-finger discount' : Upgrade('Five-finger discount',Infinity())
         }
         self.diamond = None
         self.ruby = None
@@ -898,6 +902,7 @@ class Game:
 class Buyable:
     def __init__(self,name:str,basePrice:int,conditions = []):
         self.name = name
+        self.tier = None
         self.basePrice = basePrice
         self.owned = 0
         self.game = None
@@ -978,7 +983,10 @@ class Building(Buyable):
         self.synergies = []
 
     def price(self):
-        return int(ceil(self.basePrice * (1.15 ** (self.owned))))
+        totalPrice = int(ceil(self.basePrice * (1.15 ** (self.owned))))
+        if self.game.heavenlyUpgrades['Divine discount'].owned == 1:
+            totalPrice = totalPrice*0.99
+        return ceil(totalPrice)
 
     def production(self):
         total = self.baseProduction
@@ -1054,6 +1062,16 @@ class Upgrade(Buyable):
         if(self.owned==0):
             return True
         return False
+
+    def price(self):
+        totalPrice = Buyable.price(self)
+        if totalPrice == Infinity():
+            return totalPrice
+        if self.game.heavenlyUpgrades['Divine sales'].owned == 1:
+            totalPrice = totalPrice*0.99
+        if self.game.heavenlyUpgrades['Five-finger discount'].owned == 1:
+            totalPrice = totalPrice*(0.99**(self.game.buildings['Cursor'].owned/100))
+        return ceil(totalPrice)
 
     def buy(self):
         Buyable.buy(self)
@@ -1135,13 +1153,23 @@ class DoubleUpgrade(Upgrade):
         return newUpgrade
 
 class Cookie(Upgrade):
-    def __init__(self,name,price,multiplier,conditions = []):
+    def __init__(self,name,price,multiplier,conditions = [],**kwargs):
+        if 'tier' in kwargs:
+            tier = kwargs['tier']
+        else:
+            tier = 'cookie'
         Upgrade.__init__(self,name,price,conditions)
         self.multiplier = multiplier
 
     def buy(self):
         Upgrade.buy(self)
         self.game.cookieMultiplier*=self.multiplier
+    
+    def price(self):
+        totalPrice = Upgrade.price(self)
+        if self.tier == 'cookie' and self.game.heavenlyUpgrades['Divine bakeries'].owned == 1:
+            totalPrice = totalPrice/5
+        return totalPrice
 
     def sell(self):
         Upgrade.sell(self)
