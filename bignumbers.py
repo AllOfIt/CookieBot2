@@ -39,6 +39,8 @@ class Infinity:
         return self
     def __div__(self,a):
         return self
+    def __idiv__(self,a):
+        return self
     def __iadd__(self,a):
         return self
     
