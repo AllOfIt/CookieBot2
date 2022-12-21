@@ -513,6 +513,7 @@ class Game:
         self.heavenlyUpgrades = {   
             'Legacy' : Upgrade('Legacy',Infinity()),
             'Heavenly cookies' : Cookie('Heavenly cookies',Infinity(),1.1),
+            'Wrinkly cookies' : Cookie('Wrinkly cookies',Infinity(),1.1),
             'Tin of british tea biscuits' : Upgrade('Tin of british tea biscuits',Infinity()),
             'Box of brand biscuits' : Upgrade('Box of brand biscuits',Infinity()),
             'Box of macarons' : Upgrade('Box of macarons',Infinity()),
@@ -1366,25 +1367,4 @@ class Synergy:
     def multiplier(self,game):
         return self.bonus**game.buildings[self.target].owned
 
-def checkSynergies():
-    testgame  = Game()
-    synergies = []
-    for name in testgame.upgrades:
-        if type(testgame.upgrades[name]) == SynergyUpgrade:
-            synergies.append(testgame.upgrades[name])
-    finalResult = 0
-    for upgrade in synergies:
-        if testgame.buildings[upgrade.target1].basePrice<testgame.buildings[upgrade.target2].basePrice:
-            result = 'Good'
-        else:
-            finalResult+=1
-            result = "Bad"
-        print("{}  {}: target1:{}    target2:{}".format(result,upgrade.name,upgrade.target1,upgrade.target2))
-    print("{} bad synergies detected".format(finalResult))
 
-#checkSynergies()
-#testGame = Game()
-#testGame.record('./cookie_buys.csv',3000)
-mainGame = Game()
-while True:
-    mainGame.run()
