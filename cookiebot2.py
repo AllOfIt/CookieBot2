@@ -528,6 +528,7 @@ class Game:
             'Divine bakeries' : Upgrade('Divine bakeries',Infinity()),
             'Five-finger discount' : Upgrade('Five-finger discount',Infinity())
         }
+        #to be used for pantheon
         self.diamond = None
         self.ruby = None
         self.jade = None
@@ -535,6 +536,7 @@ class Game:
 
         }
 
+        #setup for making instances of upgrade and building aware of eachother
         for name in self.buildings:
             self.buildings[name].setup(self)
         for name in self.upgrades:
@@ -542,6 +544,7 @@ class Game:
         for name in self.heavenlyUpgrades:
             self.heavenlyUpgrades[name].setup(self)
 
+    #deepcopy, calls other copy functions to duplicate gamestate
     def copy(self):
         newGame = Game()
         newGame.hardcore = self.hardcore
@@ -576,7 +579,7 @@ class Game:
             newGame.heavenlyUpgrades[name].setup()
         return newGame
 
-    def buy(self,name):
+    def buy(self,name:str):
         if name in self.buildings:
             self.buildings[name].buy()
         elif name in self.upgrades:
@@ -585,7 +588,8 @@ class Game:
             self.heavenlyUpgrades[name].buy()
         else:
             print('error (1) name "{}" not a key in building, upgrade, or heavenly upgrade dict'.format(name))
-    def sell(self,name):
+
+    def sell(self,name:str):
         if name in self.buildings:
             self.buildings[name].sell()
         elif name in self.upgrades:
@@ -593,6 +597,7 @@ class Game:
         elif name in self.heavenlyUpgrades:
             self.heavenlyUpgrades[name].sell()
 
+    #purchase all avalible upgrades cheaper than specified upgrade
     def buyUntil(self,targetUpgrade:str):
         upgradeList = []
         for name in self.upgrades:
@@ -670,7 +675,8 @@ class Game:
         rank = []
 
     #sort the rankings for best payofftime
-    def sortRank(self,rankInput):
+    #rankInput is a tuple of form (buyable instance,payoff time)
+    def sortRank(self,rankInput:tuple):
         rank = rankInput
         length = len(rank)
         for index in range(length):
@@ -683,6 +689,8 @@ class Game:
             rank[lowest] = swap
         return rank
 
+
+    #main functionality, contains the algorithm for selecting best buy and recieve input from the user
     def run(self,**kwargs):
         if 'supressPrints' in kwargs:
             supressPrints = kwargs['supressPrints']
@@ -874,6 +882,8 @@ class Game:
         except Exception as e:
             print("data load error: {}".format(e))
 
+    # in game action that restarts some progress in exchange for prestige
+    # calls __init__ for to reset state then sets the values that should be retained
     def ascend(self,addPrestige=0):
         achievements = self.achievements
         prestige = self.prestige
@@ -895,8 +905,6 @@ class Game:
             self.buildings['Cursor'].owned = 10
         if self.heavenlyUpgrades['Starter kitchen'].owned == 1:
             self.buildings['Grandma'].owned = 5
-
-
 
 
 
